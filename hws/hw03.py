@@ -1,22 +1,58 @@
+import logging
 import sys
+
+from datetime import datetime
 
 from share import check_path
 
 
-def parse_log_line(line: str) -> dict | None:
+def is_valid_date(date_str: str) -> bool:
     """
-    parse a log line if it has the structure below, otherwise print an error
-    :param line: <date> <time> <log_level> <log>
-    :return: dict {'level': <level>, 'date': <date>, 'time': <time>, 'log': <rest of line>} or None
+    check if a string is a date in format %Y-%m-%d
+    :param date_str: any string
+    :return: True or False
     """
     try:
-        date, time, level, *log = line.split()
-        return {
-            'level': level,
-            'date': date,
-            'time': time,
-            'log': ' '.join(log)
-        }
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+
+def is_valid_time(time_str: str) -> bool:
+    """
+    check if a string is a time in format %H:%M:%S
+    :param time_str: any string
+    :return: True or False
+    """
+    try:
+        datetime.strptime(time_str, "%H:%M:%S")
+        return True
+    except ValueError:
+        return False
+
+
+def parse_log_line(line: str) -> dict | None:
+    """
+    parse a log line: find a valid date, time and log level (from logging level names), the rest is the message
+    :param line: <date> <time> <log_level> <log>
+    :return: dict {'level': <level>, 'date': <date>, 'time': <time>, 'log': <rest of line>},
+        or None if one of the parts is missing
+    """
+    try:
+        res = dict()
+        for part in line.split():
+            if is_valid_date(part):
+                res['date'] = part
+            elif is_valid_time(part):
+                res['time'] = part
+            elif part.isupper() and part in logging.getLevelNamesMapping():
+                res['level'] = part
+            else:
+                res['log'] = res.get('log', '') + ' ' + ''.join(part)
+        if len(res) == 4:
+            return res
+
     except Exception:
         print(f'Error: Log must have structure "<date> <time> <log_level> <log>: ({line})')
         return None
@@ -80,7 +116,7 @@ def display_logs(levels: list, logs: dict) -> None:
         level_name = level.upper()
         if d_logs := logs.get(level_name):
             print(f'\n{level_name}:')
-            print('\n'.join([f'{log["date"]} {log["time"]} - {log["log"]}' for log in d_logs]))
+            print('\n'.join([f'{log["date"]} {log["time"]} -{log["log"]}' for log in d_logs]))
         else:
             print(f'\n{level_name}: Not in logs')
 

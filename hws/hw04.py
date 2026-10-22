@@ -13,6 +13,7 @@ def input_error(func):
     :param func: command handler
     :return: wrapped function that returns the handler result or an error message
     """
+
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -103,9 +104,10 @@ def show_phone(*args) -> str | None:
     raise KeyError
 
 
+@input_error
 def show_all() -> str:
     """
-    show all contacts from cache, if there are any (no input, so no input_error)
+    show all contacts from cache, if there are any
     :return: answer to print
     """
     if CACHE:

@@ -4,13 +4,13 @@ from typing import Callable
 
 def generator_numbers(text: str):
     """
-    lazily find numbers in text with a regex (separated by spaces, two decimal places)
+    lazily find real numbers in text with a regex (separated by spaces, with a decimal point, e.g. 12.5, 0.123)
     :param text: text to search
     :return: generator that yields each number as float
     """
     for val in text.split():
         try:
-            if re.match(r'(?<!\S)\d+\.\d{2}(?!\S)', val):
+            if re.match(r'(?<!\S)\d+\.\d+(?!\S)', val):
                 yield float(val)
         except ValueError:
             continue
